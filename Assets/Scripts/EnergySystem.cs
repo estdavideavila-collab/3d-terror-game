@@ -1,20 +1,29 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using TMPro;
 
 public class EnergySystem : MonoBehaviour
 {
-    [Header("Energia")]
     public float maxEnergy = 100f;
     public float currentEnergy = 100f;
+    public float energyDrainPerSecond = 20f;
 
-    [Header("Consumo")]
-    public float energyDrainPerSecond = 2f;
+    [Header("UI")]
+    public Image energyFill;
+    public TMP_Text gameOverText;
 
     private bool isDead = false;
 
     void Start()
     {
+        Time.timeScale = 1f;
+
         currentEnergy = maxEnergy;
+
+        if (gameOverText != null)
+            gameOverText.gameObject.SetActive(false);
+
+        UpdateEnergyBar();
     }
 
     void Update()
@@ -22,16 +31,6 @@ public class EnergySystem : MonoBehaviour
         if (isDead)
             return;
 
-        DrainEnergy();
-
-        if (currentEnergy <= 0)
-        {
-            Die();
-        }
-    }
-
-    void DrainEnergy()
-    {
         currentEnergy -= energyDrainPerSecond * Time.deltaTime;
 
         currentEnergy = Mathf.Clamp(
@@ -40,14 +39,31 @@ public class EnergySystem : MonoBehaviour
             maxEnergy
         );
 
-        Debug.Log("Energia: " + currentEnergy);
+        UpdateEnergyBar();
+
+        if (currentEnergy <= 0f)
+        {
+            Die();
+        }
+    }
+
+    void UpdateEnergyBar()
+    {
+        if (energyFill != null)
+        {
+            energyFill.fillAmount =
+                currentEnergy / maxEnergy;
+        }
     }
 
     void Die()
     {
         isDead = true;
 
-        Debug.Log("El jugador murio");
+        if (gameOverText != null)
+            gameOverText.gameObject.SetActive(true);
+
+        Debug.Log("GAME OVER");
 
         Time.timeScale = 0f;
     }
