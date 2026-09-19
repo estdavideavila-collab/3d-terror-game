@@ -7,6 +7,7 @@ public class EnergySystem : MonoBehaviour
     public float maxEnergy = 100f;
     public float currentEnergy = 100f;
     public float energyDrainPerSecond = 20f;
+    public float multiplicadorDeConsumo = 1f;
 
     [Header("UI")]
     public Image energyFill;
@@ -31,7 +32,7 @@ public class EnergySystem : MonoBehaviour
         if (isDead)
             return;
 
-        currentEnergy -= energyDrainPerSecond * Time.deltaTime;
+        currentEnergy -= energyDrainPerSecond * multiplicadorDeConsumo * Time.deltaTime;
 
         currentEnergy = Mathf.Clamp(
             currentEnergy,

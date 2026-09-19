@@ -28,23 +28,22 @@ public class PlayerController : MonoBehaviour
     }
 
     void Update()
-    
     {
-    MovePlayer();
-    LookAround();
+        MovePlayer();
+        LookAround();
 
-    if (Keyboard.current.escapeKey.wasPressedThisFrame)
-    {
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-    }
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
 
-    if (Mouse.current.leftButton.wasPressedThisFrame)
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
-}
 
     void MovePlayer()
     {
