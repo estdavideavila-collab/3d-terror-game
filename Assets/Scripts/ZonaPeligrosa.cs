@@ -2,66 +2,71 @@ using UnityEngine;
 
 public class ZonaPeligrosa : MonoBehaviour
 {
-    [Header("Referencias")]
-    public EnergySystem sistemaDeEnergia;
-    public VinetaDePeligro vinetaDePeligro;
+    [Header("Ajustes de Peligro")]
+    [Tooltip("Multiplicador del consumo de energía cuando el jugador está dentro (ej. 3.0 multiplica x3 la pérdida).")]
+    public float multiplicadorDrenaje = 3.0f;
 
-    [Header("Configuracion del peligro")]
-    public float multiplicadorDeConsumoEnergia = 3f;
-
-    [Header("Efectos adicionales (opcional)")]
-    public GameObject efectoVisualDePeligro;
-    public AudioSource sonidoDePeligro;
-
-    void OnTriggerEnter(Collider colisionador)
+    private void OnTriggerEnter(Collider other)
     {
-        if (!colisionador.CompareTag("Player"))
-            return;
-
-        if (sistemaDeEnergia != null)
+        if (other.CompareTag("Player"))
         {
-            sistemaDeEnergia.multiplicadorDeConsumo = multiplicadorDeConsumoEnergia;
-        }
+            Debug.Log("<color=red>¡ENTRÓ A ZONA DE PELIGRO!</color>");
 
-        if (vinetaDePeligro != null)
-        {
-            vinetaDePeligro.Mostrar();
-        }
+            // 1. Activar viñeta de peligro UI
+            VignetteUI vignette = FindFirstObjectByType<VignetteUI>();
+            if (vignette != null) vignette.enabled = true;
 
-        if (efectoVisualDePeligro != null)
-        {
-            efectoVisualDePeligro.SetActive(true);
-        }
+            // 2. Aumentar la velocidad del consumo de energía
+            EnergySystem energy = other.GetComponent<EnergySystem>();
+            if (energy == null) energy = FindFirstObjectByType<EnergySystem>();
 
-        if (sonidoDePeligro != null && !sonidoDePeligro.isPlaying)
-        {
-            sonidoDePeligro.Play();
+            if (energy != null)
+            {
+                energy.multiplicadorZona = multiplicadorDrenaje;
+                Debug.Log("Multiplicador de energía activado: " + energy.multiplicadorZona);
+            }
+
+            // 3. Intensificar niebla
+            NieblaDinamica niebla = FindFirstObjectByType<NieblaDinamica>();
+            if (niebla != null) niebla.EntrarEnPeligro();
         }
     }
 
-    void OnTriggerExit(Collider colisionador)
+    private void OnTriggerExit(Collider other)
     {
-        if (!colisionador.CompareTag("Player"))
-            return;
-
-        if (sistemaDeEnergia != null)
+        if (other.CompareTag("Player"))
         {
-            sistemaDeEnergia.multiplicadorDeConsumo = 1f;
-        }
+            Debug.Log("<color=green>¡SALIÓ DE LA ZONA DE PELIGRO!</color>");
 
-        if (vinetaDePeligro != null)
-        {
-            vinetaDePeligro.Ocultar();
-        }
+            // 1. Desactivar viñeta UI
+            VignetteUI vignette = FindFirstObjectByType<VignetteUI>();
+            if (vignette != null) vignette.enabled = false;
 
-        if (efectoVisualDePeligro != null)
-        {
-            efectoVisualDePeligro.SetActive(false);
-        }
+            // 2. Restaurar consumo normal de energía
+            EnergySystem energy = other.GetComponent<EnergySystem>();
+            if (energy == null) energy = FindFirstObjectByType<EnergySystem>();
 
-        if (sonidoDePeligro != null)
-        {
-            sonidoDePeligro.Stop();
+            if (energy != null)
+            {
+                energy.multiplicadorZona = 1f;
+            }
+
+            // 3. Restaurar niebla normal
+            NieblaDinamica niebla = FindFirstObjectByType<NieblaDinamica>();
+            if (niebla != null) niebla.SalirDePeligro();
         }
+    }
+
+    private void OnDestroy()
+    {
+        // Limpieza de seguridad si el objeto de la zona se destruye durante la partida
+        VignetteUI vignette = FindFirstObjectByType<VignetteUI>();
+        if (vignette != null) vignette.enabled = false;
+
+        NieblaDinamica niebla = FindFirstObjectByType<NieblaDinamica>();
+        if (niebla != null) niebla.SalirDePeligro();
+
+        EnergySystem energy = FindFirstObjectByType<EnergySystem>();
+        if (energy != null) energy.multiplicadorZona = 1f;
     }
 }

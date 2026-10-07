@@ -2,66 +2,67 @@ using UnityEngine;
 
 public class NieblaDinamica : MonoBehaviour
 {
-    [Header("Sistema de particulas de la niebla")]
-    public ParticleSystem sistemaDeParticulasNiebla;
+    [Header("Visibilidad Normal (Fuera de Peligro)")]
+    public float visibilidadMinima = 5f;  // Lo más cerca que se pone la niebla (casi a ciegas)
+    public float visibilidadMaxima = 12f; // Lo más lejos que se puede ver
+    public float velocidadVariacion = 0.5f; // Qué tan rápido cambia la niebla sola
 
-    [Header("Aumento inicial (pequena dinamica de entrada)")]
-    public float tasaDeEmisionInicial = 0f;
-    public float tasaDeEmisionConstante = 60f;
-    public float duracionDelAumentoInicial = 4f;
+    [Header("Visibilidad en Zona de Peligro")]
+    public float visibilidadEnPeligro = 3f; // Visibilidad extrema al entrar en zona roja
+    public float velocidadTransicionPeligro = 3f;
 
-    [Header("Niebla de fondo (opcional, RenderSettings)")]
-    public bool usarNieblaDeFondo = true;
-    public float densidadDeNieblaDeFondo = 0.05f;
+    [Header("Color de la Niebla")]
+    public Color colorBase = new Color(0.1f, 0.1f, 0.12f); // Gris muy oscuro/tenebroso
+    public Color colorPeligro = new Color(0.3f, 0.05f, 0.05f); // Tono rojizo sutil en peligro
 
-    private float tiempoTranscurrido = 0f;
-    private bool aumentoTerminado = false;
+    private bool enZonaPeligro = false;
+    private float distanciaActual;
 
     void Start()
     {
-        tiempoTranscurrido = 0f;
-        aumentoTerminado = false;
+        // Activa la niebla por código
+        RenderSettings.fog = true;
+        RenderSettings.fogMode = FogMode.Linear;
+        RenderSettings.fogStartDistance = 0f; // Empieza pegada al personaje
+        RenderSettings.fogColor = colorBase;
 
-        if (usarNieblaDeFondo)
-        {
-            // La niebla de fondo se deja fija desde el inicio,
-            // solo la niebla de particulas tiene el aumento progresivo
-            RenderSettings.fog = true;
-            RenderSettings.fogMode = FogMode.Exponential;
-            RenderSettings.fogDensity = densidadDeNieblaDeFondo;
-        }
+        distanciaActual = visibilidadMaxima;
 
-        if (sistemaDeParticulasNiebla != null)
+        // Ajusta el fondo de la cámara para que coincida con el color de la niebla
+        if (Camera.main != null)
         {
-            var emision = sistemaDeParticulasNiebla.emission;
-            emision.rateOverTime = tasaDeEmisionInicial;
+            Camera.main.clearFlags = CameraClearFlags.SolidColor;
+            Camera.main.backgroundColor = colorBase;
         }
     }
 
     void Update()
     {
-        // Una vez terminado el aumento inicial, la niebla se queda
-        // constante durante el resto de la partida y no hace falta
-        // seguir calculando nada en cada frame
-        if (aumentoTerminado || sistemaDeParticulasNiebla == null)
-            return;
-
-        tiempoTranscurrido += Time.deltaTime;
-
-        float progreso = Mathf.Clamp01(tiempoTranscurrido / duracionDelAumentoInicial);
-
-        float tasaActual = Mathf.Lerp(
-            tasaDeEmisionInicial,
-            tasaDeEmisionConstante,
-            progreso
-        );
-
-        var emision = sistemaDeParticulasNiebla.emission;
-        emision.rateOverTime = tasaActual;
-
-        if (progreso >= 1f)
+        if (enZonaPeligro)
         {
-            aumentoTerminado = true;
+            // Transición rápida a niebla super densa y rojiza
+            distanciaActual = Mathf.Lerp(distanciaActual, visibilidadEnPeligro, Time.deltaTime * velocidadTransicionPeligro);
+            RenderSettings.fogColor = Color.Lerp(RenderSettings.fogColor, colorPeligro, Time.deltaTime * velocidadTransicionPeligro);
+        }
+        else
+        {
+            // La niebla "respira" suavemente entre visibilidadMinima y visibilidadMaxima usando PerlinNoise
+            float fluctuacion = Mathf.PerlinNoise(Time.time * velocidadVariacion, 0f);
+            float distanciaObjetivo = Mathf.Lerp(visibilidadMinima, visibilidadMaxima, fluctuacion);
+
+            distanciaActual = Mathf.Lerp(distanciaActual, distanciaObjetivo, Time.deltaTime * velocidadVariacion);
+            RenderSettings.fogColor = Color.Lerp(RenderSettings.fogColor, colorBase, Time.deltaTime * velocidadVariacion);
+        }
+
+        RenderSettings.fogEndDistance = distanciaActual;
+
+        if (Camera.main != null)
+        {
+            Camera.main.backgroundColor = RenderSettings.fogColor;
         }
     }
+
+    // Métodos para conectar con la zona de peligro
+    public void EntrarEnPeligro() => enZonaPeligro = true;
+    public void SalirDePeligro() => enZonaPeligro = false;
 }

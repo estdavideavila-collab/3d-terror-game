@@ -8,9 +8,14 @@ public class EnergySystem : MonoBehaviour
     [Header("Ajustes de Energía")]
     public float maxEnergy = 100f;
     public float currentEnergy = 100f;
-    public float energyDrainPerSecond = 10f;       // Consumo base al caminar
-    public float runEnergyMultiplier = 2.5f;       // Consumo 2.5x más rápido al correr
-    public float multiplicadorDeConsumo = 1f;
+
+    [Header("Tasas de Consumo")]
+    public float idleEnergyDrainPerSecond = 1f;    // Consumo base estando quieto
+    public float walkEnergyDrainPerSecond = 2f;    // Consumo adicional caminando
+    public float runEnergyMultiplier = 2f;         // Multiplicador al correr
+    
+    // PUBLIC para ver en tiempo real el valor en el Inspector mientras juegas
+    public float multiplicadorZona = 1f;           
 
     [Header("Colores de la Barra")]
     public Color colorNormal = Color.green;
@@ -18,13 +23,13 @@ public class EnergySystem : MonoBehaviour
 
     [Header("Ajustes de Tiempo")]
     public float tiempoTranscurrido = 0f;
-    private bool juegoIniciado = false;
+    public bool juegoIniciado = false;
     private bool juegoTerminado = false;
 
     [Header("UI")]
-    public Image energyFill;            // Objeto 'Fill' del Slider
-    public TMP_Text textoTiempo;        // Texto del contador (00:00)
-    public TMP_Text gameOverText;       // Texto de Game Over
+    public Image energyFill;            
+    public TMP_Text textoTiempo;        
+    public TMP_Text gameOverText;       
 
     private PlayerController playerController;
 
@@ -34,15 +39,8 @@ public class EnergySystem : MonoBehaviour
         currentEnergy = maxEnergy;
         playerController = GetComponent<PlayerController>();
 
-        if (gameOverText != null)
-        {
-            gameOverText.gameObject.SetActive(false);
-        }
-
-        if (energyFill != null)
-        {
-            energyFill.color = colorNormal;
-        }
+        if (gameOverText != null) gameOverText.gameObject.SetActive(false);
+        if (energyFill != null) energyFill.color = colorNormal;
     }
 
     void Update()
@@ -52,7 +50,7 @@ public class EnergySystem : MonoBehaviour
         bool estaCaminando = false;
         bool estaCorriendo = false;
 
-        // Comprobación directa con el PlayerController o lectura alternativa por teclado
+        // Detectar movimiento
         if (playerController != null)
         {
             estaCaminando = playerController.IsMoving;
@@ -69,48 +67,49 @@ public class EnergySystem : MonoBehaviour
                            (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed);
         }
 
-        // Arrancar cronómetro al primer paso
-        if (estaCaminando && !juegoIniciado)
+        // Arranca el juego si te mueves O si entras en una zona de peligro
+        if ((estaCaminando || multiplicadorZona > 1f) && !juegoIniciado)
         {
             juegoIniciado = true;
         }
 
-        // 1. CRONÓMETRO DE TIEMPO
+        // CALCULOS Y CONSUMO DE ENERGÍA
         if (juegoIniciado)
         {
             tiempoTranscurrido += Time.deltaTime;
             ActualizarTextoTiempo();
-        }
 
-        // 2. CONSUMO DE ENERGÍA
-        if (estaCaminando)
-        {
-            float factorCarrera = estaCorriendo ? runEnergyMultiplier : 1f;
-            float consumoTotal = energyDrainPerSecond * factorCarrera * multiplicadorDeConsumo;
+            // Consumo base
+            float consumoBase = idleEnergyDrainPerSecond;
 
-            currentEnergy -= consumoTotal * Time.deltaTime;
-            currentEnergy = Mathf.Clamp(currentEnergy, 0, maxEnergy);
+            if (estaCaminando)
+            {
+                float factorCarrera = estaCorriendo ? runEnergyMultiplier : 1f;
+                consumoBase += (walkEnergyDrainPerSecond * factorCarrera);
+            }
 
-            if (currentEnergy <= 0)
+            // APLICAR MULTIPLICADOR DE ZONA (Forzamos al menos 1f por seguridad)
+            float factorZona = Mathf.Max(1f, multiplicadorZona);
+            currentEnergy -= consumoBase * factorZona * Time.deltaTime;
+            currentEnergy = Mathf.Clamp(currentEnergy, 0f, maxEnergy);
+
+            if (currentEnergy <= 0f)
             {
                 PerderJuego();
             }
         }
 
-        // 3. BARRA Y CAMBIO DE COLOR
+        // ACTUALIZAR BARRA DE ENERGÍA EN UI
         if (energyFill != null)
         {
             energyFill.fillAmount = currentEnergy / maxEnergy;
-
-            if (currentEnergy <= (maxEnergy * 0.3f))
-            {
-                energyFill.color = colorCritico;
-            }
-            else
-            {
-                energyFill.color = colorNormal;
-            }
+            energyFill.color = (currentEnergy <= (maxEnergy * 0.3f)) ? colorCritico : colorNormal;
         }
+    }
+
+    public void RecargarEnergia(float cantidad)
+    {
+        currentEnergy = Mathf.Clamp(currentEnergy + cantidad, 0f, maxEnergy);
     }
 
     void ActualizarTextoTiempo()

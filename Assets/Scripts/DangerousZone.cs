@@ -2,66 +2,59 @@ using UnityEngine;
 
 public class DangerousZone : MonoBehaviour
 {
-    [Header("Consumo de Energía en Zona Peligrosa")]
-    public float dañoEnergiaPorSegundo = 20f; // Cantidad extra de energía que quita por segundo
-
-    private EnergySystem energySystem;
-    private bool jugadorDentro = false;
+    [Header("Ajustes de Peligro")]
+    [Tooltip("Aparecerá en el Inspector para cambiar la velocidad de drenaje")]
+    public float multiplicadorDrenaje = 3.0f;
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        // Detecta al jugador incluso si el collider toca una extremidad o hijo
+        if (other.CompareTag("Player") || other.transform.root.CompareTag("Player"))
         {
-            energySystem = other.GetComponent<EnergySystem>();
-            if (energySystem == null) energySystem = FindFirstObjectByType<EnergySystem>();
+            Debug.Log("<color=red>¡JUGADOR ENTRÓ A ZONA PELIGROSA!</color>");
 
-            jugadorDentro = true;
+            // Busca el EnergySystem en el jugador
+            EnergySystem energy = other.GetComponentInParent<EnergySystem>();
+            if (energy == null) energy = FindFirstObjectByType<EnergySystem>();
 
-            // Activa el efecto de la viñeta roja en la pantalla
-            if (VignetteUI.Instance != null)
+            if (energy != null)
             {
-                VignetteUI.Instance.SetDangerState(true);
+                energy.multiplicadorZona = multiplicadorDrenaje;
+                Debug.Log("Multiplicador cambiado a: " + energy.multiplicadorZona);
             }
-        }
-    }
-
-    private void Update()
-    {
-        // Mientras el jugador permanezca dentro de la zona, le quitamos energía continuamente
-        if (jugadorDentro && energySystem != null)
-        {
-            energySystem.currentEnergy -= dañoEnergiaPorSegundo * Time.deltaTime;
-            energySystem.currentEnergy = Mathf.Clamp(energySystem.currentEnergy, 0, energySystem.maxEnergy);
-
-            if (energySystem.currentEnergy <= 0)
+            else
             {
-                energySystem.PerderJuego();
+                Debug.LogError("No se encontró el script EnergySystem en el Player.");
             }
+
+            // Efectos opcionales de UI/Niebla si los usas
+            VignetteUI vignette = FindFirstObjectByType<VignetteUI>();
+            if (vignette != null) vignette.enabled = true;
+
+            NieblaDinamica niebla = FindFirstObjectByType<NieblaDinamica>();
+            if (niebla != null) niebla.EntrarEnPeligro();
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") || other.transform.root.CompareTag("Player"))
         {
-            SalirDeZona();
-        }
-    }
+            Debug.Log("<color=green>¡JUGADOR SALIÓ DE ZONA PELIGROSA!</color>");
 
-    private void OnDisable()
-    {
-        // Si la zona se apaga sola mientras el jugador sigue dentro
-        SalirDeZona();
-    }
+            EnergySystem energy = other.GetComponentInParent<EnergySystem>();
+            if (energy == null) energy = FindFirstObjectByType<EnergySystem>();
 
-    private void SalirDeZona()
-    {
-        jugadorDentro = false;
+            if (energy != null)
+            {
+                energy.multiplicadorZona = 1f;
+            }
 
-        // Desactiva la viñeta roja de la pantalla
-        if (VignetteUI.Instance != null)
-        {
-            VignetteUI.Instance.SetDangerState(false);
+            VignetteUI vignette = FindFirstObjectByType<VignetteUI>();
+            if (vignette != null) vignette.enabled = false;
+
+            NieblaDinamica niebla = FindFirstObjectByType<NieblaDinamica>();
+            if (niebla != null) niebla.SalirDePeligro();
         }
     }
 }
