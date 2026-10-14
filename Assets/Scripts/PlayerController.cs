@@ -31,8 +31,8 @@ public class PlayerController : MonoBehaviour
             cameraTransform = Camera.main.transform;
         }
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        // Dejamos el cursor libre al iniciar para poder usar el menú
+        DesbloquearCursor();
     }
 
     void Update()
@@ -79,8 +79,8 @@ public class PlayerController : MonoBehaviour
         Vector3 finalMotion = (moveDirection * currentSpeed) + velocity;
         controller.Move(finalMotion * Time.deltaTime);
 
-        // 2. CONTROL DE CÁMARA CON EL RATÓN
-        if (Mouse.current != null && cameraTransform != null)
+        // 2. CONTROL DE CÁMARA CON EL RATÓN (Solo si el juego arrancó y el cursor está bloqueado)
+        if (Cursor.lockState == CursorLockMode.Locked && Mouse.current != null && cameraTransform != null)
         {
             Vector2 mouseDelta = Mouse.current.delta.ReadValue() * mouseSensitivity;
 
@@ -90,5 +90,18 @@ public class PlayerController : MonoBehaviour
             cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
             transform.Rotate(Vector3.up * mouseDelta.x);
         }
+    }
+
+    // Métodos para controlar el cursor desde el MenuController
+    public void BloquearCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    public void DesbloquearCursor()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 }

@@ -41,6 +41,9 @@ public class EnergySystem : MonoBehaviour
 
         if (gameOverText != null) gameOverText.gameObject.SetActive(false);
         if (energyFill != null) energyFill.color = colorNormal;
+
+        // Si hay un menú activo, el juego empieza pausado hasta pulsar JUGAR
+        juegoIniciado = false;
     }
 
     void Update()
@@ -50,7 +53,7 @@ public class EnergySystem : MonoBehaviour
         bool estaCaminando = false;
         bool estaCorriendo = false;
 
-        // Detectar movimiento
+        // Detectar movimiento del jugador
         if (playerController != null)
         {
             estaCaminando = playerController.IsMoving;
@@ -67,13 +70,7 @@ public class EnergySystem : MonoBehaviour
                            (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed);
         }
 
-        // Arranca el juego si te mueves O si entras en una zona de peligro
-        if ((estaCaminando || multiplicadorZona > 1f) && !juegoIniciado)
-        {
-            juegoIniciado = true;
-        }
-
-        // CALCULOS Y CONSUMO DE ENERGÍA
+        // CÁLCULOS Y CONSUMO DE ENERGÍA (Solo cuando el gameplay está activo)
         if (juegoIniciado)
         {
             tiempoTranscurrido += Time.deltaTime;
@@ -105,6 +102,21 @@ public class EnergySystem : MonoBehaviour
             energyFill.fillAmount = currentEnergy / maxEnergy;
             energyFill.color = (currentEnergy <= (maxEnergy * 0.3f)) ? colorCritico : colorNormal;
         }
+    }
+
+    // Llamado desde el botón JUGAR a través del MenuController
+    public void IniciarGameplay()
+    {
+        juegoIniciado = true;
+        juegoTerminado = false;
+        
+        if (energyFill != null)
+        {
+            energyFill.fillAmount = currentEnergy / maxEnergy;
+            energyFill.color = colorNormal;
+        }
+
+        ActualizarTextoTiempo();
     }
 
     public void RecargarEnergia(float cantidad)
