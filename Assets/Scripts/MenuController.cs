@@ -10,6 +10,9 @@ public class MenuController : MonoBehaviour
     [Header("Referencia al Player")]
     public PlayerController playerController;
 
+    [Header("Cinemática")]
+    public CinematicaManager cinematicaManager;
+
     private void Start()
     {
         // Aseguramos que el cursor empiece visible en el menú
@@ -25,23 +28,36 @@ public class MenuController : MonoBehaviour
     {
         Time.timeScale = 1f;
 
-        // 1. Ocultar menús y mostrar la UI del gameplay
+        // 1. Ocultar el menú principal y el panel de explicación
         if (menuPrincipal != null) menuPrincipal.SetActive(false);
         if (explicacion != null) explicacion.SetActive(false);
-        if (uiGameplay != null) 
+
+        // 2. Si hay un CinematicaManager asignado, reproducir la cinemática
+        if (cinematicaManager != null)
+        {
+            cinematicaManager.ReproducirCinematica();
+        }
+        else
+        {
+            // Si no hay cinemática, ir directamente al gameplay
+            IniciarGameplayDirecto();
+        }
+    }
+
+    public void IniciarGameplayDirecto()
+    {
+        if (uiGameplay != null)
         {
             uiGameplay.SetActive(true);
-            Canvas.ForceUpdateCanvases(); 
+            Canvas.ForceUpdateCanvases();
         }
 
-        // 2. Iniciar el sistema de energía
         EnergySystem energy = FindFirstObjectByType<EnergySystem>();
         if (energy != null)
         {
             energy.IniciarGameplay();
         }
 
-        // 3. Capturar el cursor para poder controlar la cámara
         if (playerController != null)
         {
             playerController.BloquearCursor();
