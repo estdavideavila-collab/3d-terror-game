@@ -4,52 +4,56 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class SonidoProximidad : MonoBehaviour
 {
-    [Header("Sonido")]
-    public AudioClip sonidoPulso;          // sonido CORTO (menos de 0.5 s)
-    [Range(0f, 1f)] public float volumen = 1f;
+    [Header("Configuración de Sonido")]
+    public AudioClip sonidoPulso;
+    [Range(0f, 1f)] public float volumenMaximo = 0.6f;
 
-    [Header("Distancias (metros)")]
-    public float distanciaMinima = 1.5f;   // dentro de esta distancia suena al máximo
-    public float distanciaMaxima = 14f;    // más lejos de esto no se oye
+    [Header("Ritmo Constante (segundos)")]
+    public float intervaloFijo = 1.0f;
 
-    [Header("Ritmo de los pulsos (segundos entre pulso y pulso)")]
-    public float intervaloCerca = 0.3f;
-    public float intervaloLejos = 1.6f;
+    [Header("Distancias de Audio 3D (metros)")]
+    public float distanciaMinima = 1.5f;
+    public float distanciaMaxima = 14.0f;
 
-    [Header("Tono (pitch)")]
-    public float tonoCerca = 1.3f;
-    public float tonoLejos = 0.8f;
-
-    [Header("Opciones")]
-    public bool soloElMasCercano = true;   // solo suena el objeto más cercano al jugador
-
+    // Lista compartida por TODOS los objetos con este script (manzanas, botellas, etc.)
     private static readonly List<SonidoProximidad> todos = new List<SonidoProximidad>();
+    private static SonidoProximidad masCercano;
+    private static int frameCalculado = -1;
 
     private AudioSource fuente;
     private Transform oyente;
     private float temporizador;
+    private bool sonando;
 
     void Awake()
     {
         fuente = GetComponent<AudioSource>();
         fuente.playOnAwake = false;
         fuente.loop = false;
-        fuente.spatialBlend = 1f;                    // 3D: da dirección izquierda/derecha
-        fuente.rolloffMode = AudioRolloffMode.Linear; // el volumen baja con la distancia
+        fuente.spatialBlend = 1f;
+        fuente.rolloffMode = AudioRolloffMode.Linear;
         fuente.minDistance = distanciaMinima;
         fuente.maxDistance = distanciaMaxima;
-        fuente.spread = 0f;
-        fuente.dopplerLevel = 0f;
+        fuente.pitch = 1f;
+        fuente.volume = volumenMaximo;
     }
 
-    void OnEnable() { todos.Add(this); }
+    void OnEnable()  { if (!todos.Contains(this)) todos.Add(this); }
     void OnDisable() { todos.Remove(this); }
+    void OnDestroy() { todos.Remove(this); }
+
+    // Llámalo desde el script de recoger si NO destruyes ni desactivas el objeto
+    public void Recogido()
+    {
+        todos.Remove(this);
+        fuente.Stop();
+        enabled = false;
+        frameCalculado = -1; // fuerza recalcular el más cercano en el siguiente frame
+    }
 
     void Update()
     {
         if (sonidoPulso == null) return;
-
-        // Solo suena cuando el juego está activo (no en el menú, la cinemática ni el Game Over)
         if (Cursor.lockState != CursorLockMode.Locked || Time.timeScale <= 0f) return;
 
         if (oyente == null)
@@ -58,37 +62,62 @@ public class SonidoProximidad : MonoBehaviour
             oyente = Camera.main.transform;
         }
 
-        float distancia = Vector3.Distance(transform.position, oyente.position);
+        CalcularMasCercano();
 
-        if (distancia > distanciaMaxima)
+        // Si no soy el más cercano, me callo y reinicio
+        if (masCercano != this)
         {
-            temporizador = 0f;
+            if (sonando) { fuente.Stop(); sonando = false; }
             return;
         }
 
-        if (soloElMasCercano && !EsElMasCercano(distancia)) return;
+        // Soy el más cercano
+        if (!sonando)
+        {
+            sonando = true;
+            temporizador = intervaloFijo; // suena casi de inmediato
+        }
 
-        // 0 = muy cerca, 1 = muy lejos
-        float t = Mathf.InverseLerp(distanciaMinima, distanciaMaxima, distancia);
-        float intervalo = Mathf.Lerp(intervaloCerca, intervaloLejos, t);
+        float distancia = Vector3.Distance(transform.position, oyente.position);
+        if (distancia > distanciaMaxima)
+        {
+            temporizador = intervaloFijo;
+            return;
+        }
 
         temporizador += Time.deltaTime;
-        if (temporizador >= intervalo)
+        if (temporizador >= intervaloFijo)
         {
             temporizador = 0f;
-            fuente.pitch = Mathf.Lerp(tonoCerca, tonoLejos, t);
-            fuente.PlayOneShot(sonidoPulso, volumen);
+            fuente.PlayOneShot(sonidoPulso);
         }
     }
 
-    bool EsElMasCercano(float miDistancia)
+    // Se ejecuta una sola vez por frame, sin importar cuántos objetos haya
+    static void CalcularMasCercano()
     {
-        foreach (SonidoProximidad otro in todos)
+        if (frameCalculado == Time.frameCount) return;
+        frameCalculado = Time.frameCount;
+
+        masCercano = null;
+        float menor = float.MaxValue;
+        Transform cam = Camera.main != null ? Camera.main.transform : null;
+        if (cam == null) return;
+
+        for (int i = todos.Count - 1; i >= 0; i--)
         {
-            if (otro == this) continue;
-            if (Vector3.Distance(otro.transform.position, oyente.position) < miDistancia)
-                return false;
+            var o = todos[i];
+            if (o == null || !o.enabled || !o.gameObject.activeInHierarchy)
+            {
+                todos.RemoveAt(i);
+                continue;
+            }
+            float d = (o.transform.position - cam.position).sqrMagnitude;
+            if (d < menor)
+            {
+                menor = d;
+                masCercano = o;
+            }
         }
-        return true;
     }
 }
