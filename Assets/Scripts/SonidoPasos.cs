@@ -26,12 +26,12 @@ public class SonidoPasos : MonoBehaviour
         if (jugador == null) return;
 
         // No reproducir pasos mientras esté abierto el menú.
+
         bool jugando = Cursor.lockState == CursorLockMode.Locked;
+        bool enSuelo = jugador.EstaEnSuelo; // NUEVO: sin pasos en el aire
 
-        bool caminando = jugando && jugador.IsMoving &&
-                         !jugador.IsRunning;
-
-        bool corriendo = jugando && jugador.IsRunning;
+        bool caminando = jugando && enSuelo && jugador.IsMoving && !jugador.IsRunning;
+        bool corriendo = jugando && enSuelo && jugador.IsRunning;
 
         if (!caminando && !corriendo)
         {

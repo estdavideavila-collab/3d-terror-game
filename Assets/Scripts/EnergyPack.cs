@@ -5,11 +5,15 @@ public class EnergyPack : MonoBehaviour
     [Header("Ajustes de Recarga")]
     public float energiaAportada = 5f; // Cantidad fija de energía a recuperar
 
-    private bool yaFueRecogido = false; // Evita que se active múltiples veces en el mismo frame
+    [Header("Sonido al recoger")]
+    public AudioClip sonidoMejora;
+    [Range(0f, 1f)] public float volumenMejora = 1f;
+
+    private bool yaFueRecogido = false;
 
     private void OnTriggerEnter(Collider other)
     {
-        if (yaFueRecogido) return; // Si ya se procesó, ignora cualquier otra colisión
+        if (yaFueRecogido) return;
 
         if (other.CompareTag("Player"))
         {
@@ -18,13 +22,20 @@ public class EnergyPack : MonoBehaviour
 
             if (energySystem != null)
             {
-                yaFueRecogido = true; // Bloquea recargas extra inmediatas
+                yaFueRecogido = true;
 
-                // Suma únicamente la cantidad asignada
                 energySystem.currentEnergy += energiaAportada;
                 energySystem.currentEnergy = Mathf.Clamp(energySystem.currentEnergy, 0f, energySystem.maxEnergy);
 
-                // Destruye el objeto inmediatamente
+                // Sonido de "mejora": se reproduce donde está la cámara para oírlo claro
+                if (sonidoMejora != null)
+                {
+                    Vector3 posicionSonido = Camera.main != null
+                        ? Camera.main.transform.position
+                        : transform.position;
+                    AudioSource.PlayClipAtPoint(sonidoMejora, posicionSonido, volumenMejora);
+                }
+
                 Destroy(gameObject);
             }
         }

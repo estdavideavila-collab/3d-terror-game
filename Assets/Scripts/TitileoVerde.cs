@@ -3,9 +3,10 @@ using UnityEngine;
 public class TitileoVerde : MonoBehaviour
 {
     [Header("Ajustes de Luz y Brillo")]
-    public float velocidadTitileo = 5f;
-    public float intensidadMinima = 0.5f;
-    public float intensidadMaxima = 4f;
+public float velocidadTitileo = 5f;
+public float intensidadMinima = 0.5f;
+public float intensidadMaxima = 4f;
+public bool afectarMaterial = false; // NUEVO: déjalo apagado para botella y manzana
 
     private Light luzPunto;
     private Material materialInstancia;
@@ -24,11 +25,14 @@ public class TitileoVerde : MonoBehaviour
         }
 
         // 2. Crea una instancia del material para modificar la emisión sin afectar el asset original
-        Renderer renderer = GetComponent<Renderer>();
-        if (renderer != null)
+        if (afectarMaterial)
         {
-            materialInstancia = renderer.material;
-            materialInstancia.EnableKeyword("_EMISSION");
+            Renderer renderer = GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                materialInstancia = renderer.material;
+                materialInstancia.EnableKeyword("_EMISSION");
+            }
         }
     }
 

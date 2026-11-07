@@ -27,9 +27,16 @@ public class EnergySystem : MonoBehaviour
     private bool juegoTerminado = false;
 
     [Header("UI")]
+    public GameObject botonReintentar;
     public Image energyFill;            
     public TMP_Text textoTiempo;        
-    public TMP_Text gameOverText;       
+    public TMP_Text gameOverText;
+
+    [Header("Sonido de Game Over")]
+    public AudioClip sonidoGameOver;
+    [Range(0f, 1f)] public float volumenGameOver = 1f;
+
+    private AudioSource fuenteGameOver;
 
     private PlayerController playerController;
 
@@ -39,8 +46,18 @@ public class EnergySystem : MonoBehaviour
         currentEnergy = maxEnergy;
         playerController = GetComponent<PlayerController>();
 
-        if (gameOverText != null) gameOverText.gameObject.SetActive(false);
+        if (gameOverText != null) gameOverText.gameObject.SetActive(false); if (botonReintentar != null) botonReintentar.SetActive(false);
         if (energyFill != null) energyFill.color = colorNormal;
+
+        // AudioSource propio para el Game Over, en un hijo para no mezclarse con otros sonidos del Player
+        GameObject audioGameOver = new GameObject("AudioGameOver");
+        audioGameOver.transform.SetParent(transform, false);
+        fuenteGameOver = audioGameOver.AddComponent<AudioSource>();
+        fuenteGameOver.playOnAwake = false;
+        fuenteGameOver.loop = false;
+        fuenteGameOver.spatialBlend = 0f; // 2D: se oye igual en ambos oídos
+
+        if (sonidoGameOver != null) sonidoGameOver.LoadAudioData();
 
         // Si hay un menú activo, el juego empieza pausado hasta pulsar JUGAR
         juegoIniciado = false;
@@ -135,18 +152,42 @@ public class EnergySystem : MonoBehaviour
     }
 
     public void PerderJuego()
-    {
+    { 
+        if (juegoTerminado) return;
         juegoTerminado = true;
 
+        // 1. Guarda el tiempo sobrevivido en el ranking
+        string nombre = string.IsNullOrWhiteSpace(RankingManager.NombreJugador)
+            ? "Jugador"
+            : RankingManager.NombreJugador;
+        RankingManager.Agregar(nombre, tiempoTranscurrido);
+
+        // 2. Muestra el mensaje de Game Over con el tiempo
         if (gameOverText != null)
         {
             gameOverText.gameObject.SetActive(true);
-            gameOverText.text = "¡HAS PERDIDO!";
+            gameOverText.text = "¡HAS PERDIDO!\n<size=40%>Tiempo: " + RankingManager.Formato(tiempoTranscurrido) + "</size>";
         }
 
+        // 3. Sonido de Game Over
+        if (sonidoGameOver != null && fuenteGameOver != null)
+        {
+            fuenteGameOver.PlayOneShot(sonidoGameOver, volumenGameOver);
+        }
+
+        // 4. Muestra el botón de reintentar
+        if (botonReintentar != null) botonReintentar.SetActive(true);
+
+        // 5. Libera el cursor para poder pulsar el botón
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
+        // 6. Oculta la barra de energía y el cronómetro (grupo UIGameplay)
+        MenuController menu = FindFirstObjectByType<MenuController>();
+        if (menu != null && menu.uiGameplay != null)
+            menu.uiGameplay.SetActive(false);
+
+        // 7. Pausa el juego
         Time.timeScale = 0f;
     }
 }
