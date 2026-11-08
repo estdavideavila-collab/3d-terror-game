@@ -274,7 +274,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SonidoProximidad
   sonidoPulso: {fileID: 8300000, guid: d2a054e80e0b10f438e3c49213b04191, type: 3}
   volumenMaximo: 0.404
-  intervaloFijo: 2
+  intervaloFijo: 3
   distanciaMinima: 1.5
   distanciaMaxima: 14
-  soloElMasCercano: 1

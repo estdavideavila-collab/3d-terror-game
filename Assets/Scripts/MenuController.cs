@@ -68,6 +68,18 @@ public class MenuController : MonoBehaviour
             Cursor.visible = false;
         }
     }
+    public void ReintentarJuego()
+    {
+    // 1. Descongelar el juego
+    Time.timeScale = 1f;
+    Cursor.lockState = CursorLockMode.None;
+    Cursor.visible = true;
+
+    // 2. Si recargas la escena por código:
+    UnityEngine.SceneManagement.SceneManager.LoadScene(
+        UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
+    );
+    }
 
     public void AbrirComoJugar()
     {

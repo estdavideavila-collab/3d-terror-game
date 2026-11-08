@@ -18,13 +18,23 @@ public class PanelNombre : MonoBehaviour
     // Lo llama el botón JUGAR del menú principal
     public void Abrir()
     {
-        if (menuController != null && menuController.menuPrincipal != null)
-            menuController.menuPrincipal.SetActive(false);
+    // Restablecer el tiempo y liberar el cursor inmediatamente
+    Time.timeScale = 1f;
+    Cursor.lockState = CursorLockMode.None;
+    Cursor.visible = true;
 
-        panelNombre.SetActive(true);
-        campoNombre.text = RankingManager.NombreJugador; // recuerda el nombre al reintentar
-        if (textoAviso != null) textoAviso.text = "";
-        ActualizarRanking();
+    if (menuController != null && menuController.menuPrincipal != null)
+        menuController.menuPrincipal.SetActive(false);
+
+    panelNombre.SetActive(true);
+    campoNombre.text = RankingManager.NombreJugador; // Recordar el último nombre escrito
+    if (textoAviso != null) textoAviso.text = "";
+
+    // Forzar foco en la caja de texto para permitir teclear sin clics adicionales
+    campoNombre.Select();
+    campoNombre.ActivateInputField();
+
+    ActualizarRanking();
     }
 
     // Botón VOLVER
