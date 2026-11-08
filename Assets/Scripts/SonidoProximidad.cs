@@ -19,6 +19,8 @@ public class SonidoProximidad : MonoBehaviour
     private static readonly List<SonidoProximidad> todos = new List<SonidoProximidad>();
     private static SonidoProximidad masCercano;
     private static int frameCalculado = -1;
+    // Lo controla AudioZonaPeligro: 1 = volumen normal, menos de 1 = más bajo (dentro de zona de peligro)
+    public static float FactorVolumenGlobal = 1f;
 
     private AudioSource fuente;
     private Transform oyente;
@@ -53,6 +55,8 @@ public class SonidoProximidad : MonoBehaviour
 
     void Update()
     {
+        fuente.volume = volumenMaximo * FactorVolumenGlobal;
+
         if (sonidoPulso == null) return;
         if (Cursor.lockState != CursorLockMode.Locked || Time.timeScale <= 0f) return;
 

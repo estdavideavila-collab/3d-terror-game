@@ -569,6 +569,58 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!1 &158482280
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 158482282}
+  - component: {fileID: 158482281}
+  m_Layer: 0
+  m_Name: SonidosUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &158482281
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 158482280}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76012690320aa9e4ba4562a01c6f9ba2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SonidosUI
+  sonidoHover: {fileID: 8300000, guid: 02fb6afc8056bd249953d75a912a1e1e, type: 3}
+  sonidoClick: {fileID: 8300000, guid: 907d6ee801a598e46b175f68addd573c, type: 3}
+  volumenHover: 0.4
+  volumenClick: 0.8
+  escalaHover: 1.1
+  escalaPresionado: 0.96
+  brilloReposo: 0.8
+  velocidadAnimacion: 14
+--- !u!4 &158482282
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 158482280}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 851.1694, y: -0.00001, z: 13263.077}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &271449303
 GameObject:
   m_ObjectHideFlags: 0
@@ -1218,6 +1270,157 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1475261416}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!1 &519145124
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 519145127}
+  - component: {fileID: 519145126}
+  - component: {fileID: 519145125}
+  m_Layer: 0
+  m_Name: MusicaMenu
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &519145125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519145124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29c12bdc34aa5ef4d992385e80cc6e1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MusicaMenu
+  musica: {fileID: 8300000, guid: 1609fcb62f67c1b408400ed9d0b5939a, type: 3}
+  volumen: 0.3
+  fadeIn: 2
+  fadeOut: 0.8
+  silenciarSonidosDelJuego: 1
+  fadeSonidosJuego: 1.5
+  menuPrincipal: {fileID: 943876138}
+  panelNombre: {fileID: 2111683370}
+  explicacion: {fileID: 16768731}
+--- !u!82 &519145126
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519145124}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!4 &519145127
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519145124}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 851.1694, y: -0.00001, z: 13263.077}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &520226049
 GameObject:
   m_ObjectHideFlags: 0
@@ -1652,6 +1855,7 @@ GameObject:
   - component: {fileID: 722901259}
   - component: {fileID: 722901261}
   - component: {fileID: 722901260}
+  - component: {fileID: 722901262}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1863,6 +2067,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SonidoPasos
   sonidoCaminar: {fileID: 8300000, guid: 9657f74392f64eb4b895d08428a1da54, type: 3}
   sonidoCorrer: {fileID: 8300000, guid: 2740c924c6c7f744d814c2c06de9b41a, type: 3}
+  intervaloCaminar: 0.45
+  intervaloCorrer: 0.28
+  pitchMinimo: 0.88
+  pitchMaximo: 1.12
+  volumenMinimo: 0.5
+  volumenMaximo: 0.7
 --- !u!82 &722901261
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1960,6 +2170,50 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &722901262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 722901249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3777ff6bceb228142a6cf1b60cf41447, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioZonaPeligro
+  sonidoGuia: {fileID: 8300000, guid: b534d997d5adf3c43a8162a4c7475264, type: 3}
+  volumenGuia: 0.3
+  guiaContinua: 1
+  intervaloGuiaCerca: 0.35
+  intervaloGuiaLejos: 1.2
+  distanciaSalidaLejos: 10
+  tonoGuiaCerca: 1.25
+  tonoGuiaLejos: 0.9
+  margenSalida: 1.5
+  distanciaMaximaGuia: 30
+  fadeInGuia: 0.3
+  fadeOutGuia: 1.5
+  sonidosVoces:
+  - {fileID: 8300000, guid: 2f1dbdb769d6d9e459942691ad2e23e8, type: 3}
+  - {fileID: 8300000, guid: 56b778f8193526a468fa641bda444390, type: 3}
+  - {fileID: 8300000, guid: c427c1e0e6e6128418dd2bad7ff0fa20, type: 3}
+  volumenVoces: 0.1
+  intervaloVocesMin: 1.5
+  intervaloVocesMax: 4
+  distanciaVozMin: 2
+  distanciaVozMax: 7
+  elevacionMin: -45
+  elevacionMax: 90
+  giroMaximo: 60
+  tonoVozMin: 0.85
+  tonoVozMax: 1.1
+  vocesSimultaneas: 3
+  fadeOutVoces: 1
+  factorItemsEnPeligro: 0.2
+  tiempoBajarItems: 0.5
+  tiempoSubirItems: 1.5
+  usarSpatializer: 0
 --- !u!1 &741811137
 GameObject:
   m_ObjectHideFlags: 0
@@ -5327,8 +5581,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3371064f66056b04189fa14c6c62f3c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SonidoLoboAleatorio
+  jugador: {fileID: 0}
   tiempoMinimo: 20
   tiempoMaximo: 40
+  distanciaMinima: 15
+  distanciaMaxima: 35
+  tonoMinimo: 0.8
+  tonoMaximo: 1.15
+  volumenMinimo: 0.5
+  volumenMaximo: 1
 --- !u!1 &2107658335
 GameObject:
   m_ObjectHideFlags: 0
@@ -5563,3 +5824,5 @@ SceneRoots:
   - {fileID: 59704530}
   - {fileID: 973633003}
   - {fileID: 2085145867}
+  - {fileID: 519145127}
+  - {fileID: 158482282}

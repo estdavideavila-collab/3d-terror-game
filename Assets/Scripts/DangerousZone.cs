@@ -6,14 +6,15 @@ public class DangerousZone : MonoBehaviour
     [Tooltip("Aparecerá en el Inspector para cambiar la velocidad de drenaje")]
     public float multiplicadorDrenaje = 3.0f;
 
+    private bool jugadorDentro = false;
+
     private void OnTriggerEnter(Collider other)
     {
-        // Detecta al jugador incluso si el collider toca una extremidad o hijo
         if (other.CompareTag("Player") || other.transform.root.CompareTag("Player"))
         {
+            jugadorDentro = true;
             Debug.Log("<color=red>¡JUGADOR ENTRÓ A ZONA PELIGROSA!</color>");
 
-            // Busca el EnergySystem en el jugador
             EnergySystem energy = other.GetComponentInParent<EnergySystem>();
             if (energy == null) energy = FindFirstObjectByType<EnergySystem>();
 
@@ -27,7 +28,6 @@ public class DangerousZone : MonoBehaviour
                 Debug.LogError("No se encontró el script EnergySystem en el Player.");
             }
 
-            // Efectos opcionales de UI/Niebla si los usas
             VignetteUI vignette = FindFirstObjectByType<VignetteUI>();
             if (vignette != null) vignette.enabled = true;
 
@@ -40,21 +40,30 @@ public class DangerousZone : MonoBehaviour
     {
         if (other.CompareTag("Player") || other.transform.root.CompareTag("Player"))
         {
+            jugadorDentro = false;
             Debug.Log("<color=green>¡JUGADOR SALIÓ DE ZONA PELIGROSA!</color>");
-
-            EnergySystem energy = other.GetComponentInParent<EnergySystem>();
-            if (energy == null) energy = FindFirstObjectByType<EnergySystem>();
-
-            if (energy != null)
-            {
-                energy.multiplicadorZona = 1f;
-            }
-
-            VignetteUI vignette = FindFirstObjectByType<VignetteUI>();
-            if (vignette != null) vignette.enabled = false;
-
-            NieblaDinamica niebla = FindFirstObjectByType<NieblaDinamica>();
-            if (niebla != null) niebla.SalirDePeligro();
+            RestaurarEstadoNormal();
         }
+    }
+
+    private void OnDestroy()
+    {
+        // Si la zona desaparece con el jugador adentro, restaura todo
+        if (jugadorDentro && gameObject.scene.isLoaded)
+        {
+            RestaurarEstadoNormal();
+        }
+    }
+
+    private void RestaurarEstadoNormal()
+    {
+        EnergySystem energy = FindFirstObjectByType<EnergySystem>();
+        if (energy != null) energy.multiplicadorZona = 1f;
+
+        VignetteUI vignette = FindFirstObjectByType<VignetteUI>();
+        if (vignette != null) vignette.enabled = false;
+
+        NieblaDinamica niebla = FindFirstObjectByType<NieblaDinamica>();
+        if (niebla != null) niebla.SalirDePeligro();
     }
 }
