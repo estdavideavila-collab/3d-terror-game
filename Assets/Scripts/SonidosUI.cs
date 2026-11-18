@@ -49,6 +49,7 @@ public class SonidosUI : MonoBehaviour
             fuente.loop = false;
             fuente.spatialBlend = 0f;            // 2D
             fuente.ignoreListenerVolume = true;  // se oye aunque el audio del juego esté silenciado en el menú
+            fuente.ignoreListenerPause = true;   // se oye aunque el juego esté en pausa
         }
     }
 
