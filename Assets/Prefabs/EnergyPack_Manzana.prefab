@@ -131,7 +131,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnergyPack
   energiaAportada: 5
   sonidoMejora: {fileID: 8300000, guid: 00344aa4143550945b31134934e12c5a, type: 3}
-  volumenMejora: 1
+  volumenMejora: 0.15
 --- !u!114 &2744948481439412107
 MonoBehaviour:
   m_ObjectHideFlags: 0

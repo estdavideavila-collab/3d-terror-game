@@ -6,7 +6,7 @@ using TMPro;
 
 public class EnergySystem : MonoBehaviour
 {
-    [Header("Ajustes de Energía")]
+    [Header("Ajustes de Energia")]
     public float maxEnergy = 100f;
     public float currentEnergy = 100f;
 
@@ -15,7 +15,7 @@ public class EnergySystem : MonoBehaviour
     public float walkEnergyDrainPerSecond = 2f;
     public float runEnergyMultiplier = 2f;
 
-    // PUBLIC para ver el valor en tiempo real
+    // Multiplicador de consumo segun la zona
     public float multiplicadorZona = 1f;
 
     [Header("Colores de la Barra")]
@@ -32,6 +32,10 @@ public class EnergySystem : MonoBehaviour
     public GameObject botonMenuPrincipal;
 
     public Image energyFill;
+
+    // NUEVO: Slider que controla el recorrido de la calavera
+    public Slider barraEnergia;
+
     public TMP_Text textoTiempo;
     public TMP_Text gameOverText;
 
@@ -61,8 +65,8 @@ public class EnergySystem : MonoBehaviour
         if (botonMenuPrincipal != null)
             botonMenuPrincipal.SetActive(false);
 
-        if (energyFill != null)
-            energyFill.color = colorNormal;
+        // Inicializar la barra de energia y el Slider
+        ActualizarBarraEnergia();
 
         // Crear una fuente de audio exclusiva para Game Over
         GameObject audioGameOver = new GameObject("AudioGameOver");
@@ -78,7 +82,7 @@ public class EnergySystem : MonoBehaviour
         if (sonidoGameOver != null)
             sonidoGameOver.LoadAudioData();
 
-        // El juego espera a que se pulse JUGAR
+        // Esperar hasta que comience el gameplay
         juegoIniciado = false;
     }
 
@@ -109,7 +113,7 @@ public class EnergySystem : MonoBehaviour
                  Keyboard.current.rightShiftKey.isPressed);
         }
 
-        // Consumo de energía durante el gameplay
+        // Consumo de energia durante el gameplay
         if (juegoIniciado)
         {
             tiempoTranscurrido += Time.deltaTime;
@@ -127,7 +131,7 @@ public class EnergySystem : MonoBehaviour
                     walkEnergyDrainPerSecond * factorCarrera;
             }
 
-            // Multiplicador de consumo según zona
+            // Multiplicador de consumo segun la zona
             float factorZona = Mathf.Max(1f, multiplicadorZona);
 
             currentEnergy -=
@@ -145,11 +149,32 @@ public class EnergySystem : MonoBehaviour
             }
         }
 
-        // Actualizar barra de energía
+        // NUEVO: mantener el Slider sincronizado
+        ActualizarBarraEnergia();
+    }
+
+    // NUEVO: actualiza el relleno y el Slider
+    void ActualizarBarraEnergia()
+    {
+        float energiaNormalizada = maxEnergy > 0f
+            ? Mathf.Clamp01(currentEnergy / maxEnergy)
+            : 0f;
+
+        // Actualizar Slider
+        if (barraEnergia != null)
+        {
+            barraEnergia.minValue = 0f;
+            barraEnergia.maxValue = Mathf.Max(1f, maxEnergy);
+
+            barraEnergia.SetValueWithoutNotify(
+                Mathf.Clamp(currentEnergy, 0f, barraEnergia.maxValue)
+            );
+        }
+
+        // Actualizar relleno y color
         if (energyFill != null)
         {
-            energyFill.fillAmount =
-                currentEnergy / maxEnergy;
+            energyFill.fillAmount = energiaNormalizada;
 
             energyFill.color =
                 currentEnergy <= maxEnergy * 0.3f
@@ -163,14 +188,7 @@ public class EnergySystem : MonoBehaviour
         juegoIniciado = true;
         juegoTerminado = false;
 
-        if (energyFill != null)
-        {
-            energyFill.fillAmount =
-                currentEnergy / maxEnergy;
-
-            energyFill.color = colorNormal;
-        }
-
+        ActualizarBarraEnergia();
         ActualizarTextoTiempo();
     }
 
@@ -181,6 +199,8 @@ public class EnergySystem : MonoBehaviour
             0f,
             maxEnergy
         );
+
+        ActualizarBarraEnergia();
     }
 
     void ActualizarTextoTiempo()
@@ -188,10 +208,10 @@ public class EnergySystem : MonoBehaviour
         if (textoTiempo != null)
         {
             int minutos =
-                Mathf.FloorToInt(tiempoTranscurrido / 60);
+                Mathf.FloorToInt(tiempoTranscurrido / 60f);
 
             int segundos =
-                Mathf.FloorToInt(tiempoTranscurrido % 60);
+                Mathf.FloorToInt(tiempoTranscurrido % 60f);
 
             textoTiempo.text = string.Format(
                 "{0:00}:{1:00}",
@@ -208,18 +228,16 @@ public class EnergySystem : MonoBehaviour
 
         juegoTerminado = true;
 
-        // 1. Guardar el tiempo sobrevivido
-        string nombre =
-            string.IsNullOrWhiteSpace(RankingManager.NombreJugador)
-            ? "Jugador"
-            : RankingManager.NombreJugador;
+        // 1. Guardar record solamente si tiene nombre
+        if (!string.IsNullOrWhiteSpace(RankingManager.NombreJugador))
+        {
+            RankingManager.Agregar(
+                RankingManager.NombreJugador,
+                tiempoTranscurrido
+            );
+        }
 
-        RankingManager.Agregar(
-            nombre,
-            tiempoTranscurrido
-        );
-
-        // 2. Mostrar Game Over y tiempo
+        // 2. Mostrar Game Over y tiempo sobrevivido
         if (gameOverText != null)
         {
             gameOverText.gameObject.SetActive(true);
