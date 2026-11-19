@@ -9,7 +9,7 @@ public class DificultadManager : MonoBehaviour
         Dificil
     }
 
-    // Facil por defecto
+    // FACIL sigue siendo el modo predeterminado
     public static ModoDificultad dificultadActual =
         ModoDificultad.Facil;
 
@@ -18,31 +18,37 @@ public class DificultadManager : MonoBehaviour
 
     // Consumo de energia
     public static float ConsumoQuieto =>
-        EsFacil ? 0.3f : 1f;
+        EsFacil ? 1f : 1.5f;
 
     public static float ConsumoCaminando =>
-        EsFacil ? 0.7f : 2f;
+        EsFacil ? 2f : 3f;
 
     public static float MultiplicadorCarrera =>
-        EsFacil ? 1.5f : 2f;
+        EsFacil ? 2f : 2.5f;
 
-    // Cansancio
+    // Penalizacion de zonas peligrosas
+    public static float MultiplicadorZonaPeligrosa =>
+        EsFacil ? 3f : 4.5f;
+
+    // Sistema de cansancio
     public static float TiempoMaximoCorriendo =>
-        EsFacil ? 5f : 3f;
+        EsFacil ? 3f : 2f;
 
     public static float TiempoRecuperacion =>
-        EsFacil ? 3f : 5f;
+        EsFacil ? 5f : 7f;
 
-    // Seleccion desde botones del menu
+    // Boton FACIL
     public void SeleccionarFacil()
     {
         dificultadActual = ModoDificultad.Facil;
         Debug.Log("Modo FACIL seleccionado");
     }
 
+    // Boton DIFICIL
     public void SeleccionarDificil()
     {
         dificultadActual = ModoDificultad.Dificil;
         Debug.Log("Modo DIFICIL seleccionado");
     }
 }
+

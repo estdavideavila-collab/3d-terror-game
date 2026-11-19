@@ -176,7 +176,7 @@ public class EnergySystem : MonoBehaviour
             float factorZona = Mathf.Max(
                 1f,
                 multiplicadorZona *
-                (DificultadManager.EsFacil ? 0.5f : 1f)
+                (DificultadManager.EsFacil ? 1f : 1.5f)
             );
 
             currentEnergy -=
