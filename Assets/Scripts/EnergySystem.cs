@@ -33,11 +33,17 @@ public class EnergySystem : MonoBehaviour
 
     public Image energyFill;
 
-    // NUEVO: Slider que controla el recorrido de la calavera
+    // Slider que controla la barra y la calavera
     public Slider barraEnergia;
 
     public TMP_Text textoTiempo;
     public TMP_Text gameOverText;
+
+    [Header("Sonido de Energia Critica")]
+    public AudioSource sonidoEnergiaCritica;
+
+    [Range(0f, 1f)]
+    public float umbralSonidoCritico = 0.35f;
 
     [Header("Sonido de Game Over")]
     public AudioClip sonidoGameOver;
@@ -55,7 +61,10 @@ public class EnergySystem : MonoBehaviour
 
         playerController = GetComponent<PlayerController>();
 
-        // Ocultar elementos de Game Over al iniciar
+        // Aplicar dificultad seleccionada
+        AplicarDificultad();
+
+        // Ocultar elementos de Game Over
         if (gameOverText != null)
             gameOverText.gameObject.SetActive(false);
 
@@ -65,15 +74,26 @@ public class EnergySystem : MonoBehaviour
         if (botonMenuPrincipal != null)
             botonMenuPrincipal.SetActive(false);
 
-        // Inicializar la barra de energia y el Slider
+        // Preparar sonido de energia critica
+        if (sonidoEnergiaCritica != null)
+        {
+            sonidoEnergiaCritica.playOnAwake = false;
+            sonidoEnergiaCritica.loop = true;
+            sonidoEnergiaCritica.spatialBlend = 0f;
+            sonidoEnergiaCritica.Stop();
+        }
+
+        // Inicializar barra de energia
         ActualizarBarraEnergia();
 
-        // Crear una fuente de audio exclusiva para Game Over
-        GameObject audioGameOver = new GameObject("AudioGameOver");
+        // Crear fuente de audio exclusiva para Game Over
+        GameObject audioGameOver =
+            new GameObject("AudioGameOver");
 
         audioGameOver.transform.SetParent(transform, false);
 
-        fuenteGameOver = audioGameOver.AddComponent<AudioSource>();
+        fuenteGameOver =
+            audioGameOver.AddComponent<AudioSource>();
 
         fuenteGameOver.playOnAwake = false;
         fuenteGameOver.loop = false;
@@ -82,8 +102,26 @@ public class EnergySystem : MonoBehaviour
         if (sonidoGameOver != null)
             sonidoGameOver.LoadAudioData();
 
-        // Esperar hasta que comience el gameplay
+        // Esperar hasta que comience la partida
         juegoIniciado = false;
+    }
+
+    // Configurar consumo segun dificultad
+    void AplicarDificultad()
+    {
+        idleEnergyDrainPerSecond =
+            DificultadManager.ConsumoQuieto;
+
+        walkEnergyDrainPerSecond =
+            DificultadManager.ConsumoCaminando;
+
+        runEnergyMultiplier =
+            DificultadManager.MultiplicadorCarrera;
+
+        Debug.Log(
+            "Dificultad aplicada: " +
+            DificultadManager.dificultadActual
+        );
     }
 
     void Update()
@@ -94,7 +132,6 @@ public class EnergySystem : MonoBehaviour
         bool estaCaminando = false;
         bool estaCorriendo = false;
 
-        // Detectar movimiento del jugador
         if (playerController != null)
         {
             estaCaminando = playerController.IsMoving;
@@ -113,26 +150,34 @@ public class EnergySystem : MonoBehaviour
                  Keyboard.current.rightShiftKey.isPressed);
         }
 
-        // Consumo de energia durante el gameplay
+        // Consumo durante la partida
         if (juegoIniciado)
         {
             tiempoTranscurrido += Time.deltaTime;
 
             ActualizarTextoTiempo();
 
-            float consumoBase = idleEnergyDrainPerSecond;
+            float consumoBase =
+                idleEnergyDrainPerSecond;
 
             if (estaCaminando)
             {
                 float factorCarrera =
-                    estaCorriendo ? runEnergyMultiplier : 1f;
+                    estaCorriendo
+                    ? runEnergyMultiplier
+                    : 1f;
 
                 consumoBase +=
                     walkEnergyDrainPerSecond * factorCarrera;
             }
 
-            // Multiplicador de consumo segun la zona
-            float factorZona = Mathf.Max(1f, multiplicadorZona);
+            // Reducir penalizacion de zonas en Facil
+            // Mantener penalizacion original en Dificil
+            float factorZona = Mathf.Max(
+                1f,
+                multiplicadorZona *
+                (DificultadManager.EsFacil ? 0.5f : 1f)
+            );
 
             currentEnergy -=
                 consumoBase * factorZona * Time.deltaTime;
@@ -149,14 +194,15 @@ public class EnergySystem : MonoBehaviour
             }
         }
 
-        // NUEVO: mantener el Slider sincronizado
+        // Actualizar barra, calavera y sonido critico
         ActualizarBarraEnergia();
     }
 
-    // NUEVO: actualiza el relleno y el Slider
+    // Mantener sincronizada la barra y la calavera
     void ActualizarBarraEnergia()
     {
-        float energiaNormalizada = maxEnergy > 0f
+        float energiaNormalizada =
+            maxEnergy > 0f
             ? Mathf.Clamp01(currentEnergy / maxEnergy)
             : 0f;
 
@@ -167,7 +213,11 @@ public class EnergySystem : MonoBehaviour
             barraEnergia.maxValue = Mathf.Max(1f, maxEnergy);
 
             barraEnergia.SetValueWithoutNotify(
-                Mathf.Clamp(currentEnergy, 0f, barraEnergia.maxValue)
+                Mathf.Clamp(
+                    currentEnergy,
+                    0f,
+                    barraEnergia.maxValue
+                )
             );
         }
 
@@ -177,14 +227,57 @@ public class EnergySystem : MonoBehaviour
             energyFill.fillAmount = energiaNormalizada;
 
             energyFill.color =
-                currentEnergy <= maxEnergy * 0.3f
+                energiaNormalizada <= 0.30f
                 ? colorCritico
                 : colorNormal;
+        }
+
+        // NUEVO: activar sonido al llegar al 35 %
+        ActualizarSonidoEnergiaCritica(energiaNormalizada);
+    }
+
+    // NUEVO: controlar el audio segun la energia
+    void ActualizarSonidoEnergiaCritica(float porcentaje)
+    {
+        if (sonidoEnergiaCritica == null)
+            return;
+
+        bool debeSonar =
+            juegoIniciado &&
+            !juegoTerminado &&
+            porcentaje <= umbralSonidoCritico &&
+            porcentaje > 0f;
+
+        if (debeSonar)
+        {
+            // Evitar reiniciar el audio en cada fotograma
+            if (!sonidoEnergiaCritica.isPlaying)
+            {
+                sonidoEnergiaCritica.Play();
+            }
+        }
+        else
+        {
+            // Detener al recuperar energia
+            if (sonidoEnergiaCritica.isPlaying)
+            {
+                sonidoEnergiaCritica.Stop();
+            }
         }
     }
 
     public void IniciarGameplay()
     {
+        // Aplicar dificultad antes de comenzar
+        AplicarDificultad();
+
+        // Actualizar cansancio segun el modo seleccionado
+        CansancioJugador cansancio =
+            GetComponent<CansancioJugador>();
+
+        if (cansancio != null)
+            cansancio.AplicarDificultad();
+
         juegoIniciado = true;
         juegoTerminado = false;
 
@@ -228,8 +321,13 @@ public class EnergySystem : MonoBehaviour
 
         juegoTerminado = true;
 
-        // 1. Guardar record solamente si tiene nombre
-        if (!string.IsNullOrWhiteSpace(RankingManager.NombreJugador))
+        // Detener audio de energia critica
+        if (sonidoEnergiaCritica != null)
+            sonidoEnergiaCritica.Stop();
+
+        // Guardar record solo si se registro un nombre
+        if (!string.IsNullOrWhiteSpace(
+            RankingManager.NombreJugador))
         {
             RankingManager.Agregar(
                 RankingManager.NombreJugador,
@@ -237,7 +335,7 @@ public class EnergySystem : MonoBehaviour
             );
         }
 
-        // 2. Mostrar Game Over y tiempo sobrevivido
+        // Mostrar pantalla de Game Over
         if (gameOverText != null)
         {
             gameOverText.gameObject.SetActive(true);
@@ -248,7 +346,7 @@ public class EnergySystem : MonoBehaviour
                 "</size>";
         }
 
-        // 3. Reproducir sonido de Game Over
+        // Reproducir sonido de Game Over
         if (sonidoGameOver != null &&
             fuenteGameOver != null)
         {
@@ -258,18 +356,18 @@ public class EnergySystem : MonoBehaviour
             );
         }
 
-        // 4. Mostrar ambos botones
+        // Mostrar botones
         if (botonReintentar != null)
             botonReintentar.SetActive(true);
 
         if (botonMenuPrincipal != null)
             botonMenuPrincipal.SetActive(true);
 
-        // 5. Liberar cursor
+        // Liberar cursor
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // 6. Ocultar interfaz del gameplay
+        // Ocultar interfaz de gameplay
         MenuController menu =
             FindFirstObjectByType<MenuController>();
 
@@ -279,7 +377,14 @@ public class EnergySystem : MonoBehaviour
             menu.uiGameplay.SetActive(false);
         }
 
-        // 7. Pausar juego
+        // Pausar juego
         Time.timeScale = 0f;
+    }
+
+    void OnDisable()
+    {
+        // Evitar que el audio continue al desactivar el jugador
+        if (sonidoEnergiaCritica != null)
+            sonidoEnergiaCritica.Stop();
     }
 }

@@ -5,7 +5,7 @@ public class CansancioJugador : MonoBehaviour
 {
     [Header("Configuracion del cansancio")]
     public float tiempoMaximoCorriendo = 5f;
-    public float tiempoRecuperacion = 7f;
+    public float tiempoRecuperacion = 3f;
 
     [Header("Sonido de cansancio")]
     public AudioSource sonidoLatidos;
@@ -22,6 +22,12 @@ public class CansancioJugador : MonoBehaviour
         jugador = GetComponent<PlayerController>();
         energia = GetComponent<EnergySystem>();
 
+        // Aplicar dificultad predeterminada
+        AplicarDificultad();
+
+        if (jugador != null)
+            jugador.PuedeCorrer = true;
+
         if (sonidoLatidos != null)
         {
             sonidoLatidos.playOnAwake = false;
@@ -30,25 +36,44 @@ public class CansancioJugador : MonoBehaviour
         }
     }
 
+    // Aplica los tiempos del modo Facil o Dificil
+    public void AplicarDificultad()
+    {
+        tiempoMaximoCorriendo =
+            DificultadManager.TiempoMaximoCorriendo;
+
+        tiempoRecuperacion =
+            DificultadManager.TiempoRecuperacion;
+
+        Debug.Log(
+            "Cansancio configurado en modo: " +
+            DificultadManager.dificultadActual
+        );
+    }
+
     void Update()
     {
         if (jugador == null || energia == null)
             return;
 
-        // Solo funciona durante la partida
-        bool jugando = energia.juegoIniciado &&
+        // Detectar si la partida esta activa
+        bool jugando =
+            energia.juegoIniciado &&
             Time.timeScale > 0f &&
             Cursor.lockState == CursorLockMode.Locked;
 
         if (!jugando)
         {
-            if (sonidoLatidos != null && sonidoLatidos.isPlaying)
+            if (sonidoLatidos != null &&
+                sonidoLatidos.isPlaying)
+            {
                 sonidoLatidos.Stop();
+            }
 
             return;
         }
 
-        // Recuperacion del personaje
+        // Recuperacion cuando el jugador esta agotado
         if (estaCansado)
         {
             tiempoRestante -= Time.deltaTime;
@@ -57,6 +82,7 @@ public class CansancioJugador : MonoBehaviour
             {
                 estaCansado = false;
                 tiempoCorriendo = 0f;
+                tiempoRestante = 0f;
 
                 jugador.PuedeCorrer = true;
 
@@ -67,15 +93,13 @@ public class CansancioJugador : MonoBehaviour
             return;
         }
 
-        // Acumular tiempo mientras corre
+        // Acumular el tiempo mientras corre
         if (jugador.IsRunning)
         {
             tiempoCorriendo += Time.deltaTime;
 
             if (tiempoCorriendo >= tiempoMaximoCorriendo)
-            {
                 AgotarJugador();
-            }
         }
     }
 
@@ -84,11 +108,12 @@ public class CansancioJugador : MonoBehaviour
         estaCansado = true;
         tiempoRestante = tiempoRecuperacion;
 
-        // Bloquear carrera
+        // Bloquear temporalmente la carrera
         jugador.PuedeCorrer = false;
 
-        // Reproducir latidos durante la recuperacion
-        if (sonidoLatidos != null && sonidoLatidos.clip != null)
+        // Iniciar latidos durante el cansancio
+        if (sonidoLatidos != null &&
+            sonidoLatidos.clip != null)
         {
             sonidoLatidos.loop = true;
             sonidoLatidos.Play();
@@ -104,4 +129,3 @@ public class CansancioJugador : MonoBehaviour
             jugador.PuedeCorrer = true;
     }
 }
-

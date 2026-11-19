@@ -12,17 +12,22 @@ public class PanelNombre : MonoBehaviour
     public TMP_Text textoRanking;
     public TMP_Text textoAviso;
 
+    [Header("Seleccion de dificultad")]
+    public GameObject panelDificultad;
+
     private bool iniciandoPartida = false;
 
     void Start()
     {
         if (panelNombre != null)
             panelNombre.SetActive(false);
+
+        if (panelDificultad != null)
+            panelDificultad.SetActive(false);
     }
 
     void Update()
     {
-        // Permitir continuar con Enter mientras el panel esté abierto
         if (panelNombre != null &&
             panelNombre.activeInHierarchy &&
             !iniciandoPartida &&
@@ -36,7 +41,45 @@ public class PanelNombre : MonoBehaviour
         }
     }
 
-    // Lo llama el botón JUGAR del menú principal
+    // NUEVO: lo llama JUGAR desde el menu principal
+    public void AbrirDificultad()
+    {
+        Time.timeScale = 1f;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        iniciandoPartida = false;
+
+        // Facil predeterminado en cada partida nueva
+        DificultadManager.dificultadActual =
+            DificultadManager.ModoDificultad.Facil;
+
+        if (menuController != null &&
+            menuController.menuPrincipal != null)
+        {
+            menuController.menuPrincipal.SetActive(false);
+        }
+
+        if (panelNombre != null)
+            panelNombre.SetActive(false);
+
+        if (panelDificultad != null)
+            panelDificultad.SetActive(true);
+        else
+            Debug.LogWarning("PanelNombre: falta PanelDificultad.");
+    }
+
+    // NUEVO: lo llama COMENZAR desde el panel de dificultad
+    public void ContinuarDesdeDificultad()
+    {
+        if (panelDificultad != null)
+            panelDificultad.SetActive(false);
+
+        Abrir();
+    }
+
+    // Abrir el registro opcional de nombre
     public void Abrir()
     {
         Time.timeScale = 1f;
@@ -52,10 +95,12 @@ public class PanelNombre : MonoBehaviour
             menuController.menuPrincipal.SetActive(false);
         }
 
+        if (panelDificultad != null)
+            panelDificultad.SetActive(false);
+
         if (panelNombre != null)
             panelNombre.SetActive(true);
 
-        // Campo vacío por defecto: registrar el nombre es opcional
         if (campoNombre != null)
         {
             campoNombre.text = "";
@@ -66,18 +111,18 @@ public class PanelNombre : MonoBehaviour
         if (textoAviso != null)
         {
             textoAviso.text =
-                "Escribe tu nombre para guardar tu récord (opcional). " +
+                "Escribe tu nombre para guardar tu record (opcional). " +
                 "Presiona Enter para comenzar.";
         }
 
         ActualizarRanking();
     }
 
-    // Botón VOLVER
-    public void Volver()
+    // NUEVO: volver desde dificultad al menu principal
+    public void VolverDesdeDificultad()
     {
-        if (panelNombre != null)
-            panelNombre.SetActive(false);
+        if (panelDificultad != null)
+            panelDificultad.SetActive(false);
 
         if (menuController != null &&
             menuController.menuPrincipal != null)
@@ -86,7 +131,21 @@ public class PanelNombre : MonoBehaviour
         }
     }
 
-    // Botón COMENZAR o tecla ENTER
+    // Volver desde registro de nombre
+    public void Volver()
+    {
+        if (panelNombre != null)
+            panelNombre.SetActive(false);
+
+        // Regresar al selector de dificultad
+        if (panelDificultad != null)
+            panelDificultad.SetActive(true);
+        else if (menuController != null &&
+                 menuController.menuPrincipal != null)
+            menuController.menuPrincipal.SetActive(true);
+    }
+
+    // Comenzar partida desde el boton o Enter
     public void Comenzar()
     {
         if (iniciandoPartida)
@@ -99,13 +158,11 @@ public class PanelNombre : MonoBehaviour
         if (campoNombre != null)
             nombre = campoNombre.text.Trim();
 
-        // Vacío = partida sin registrar récord
         RankingManager.NombreJugador = nombre;
 
         if (panelNombre != null)
             panelNombre.SetActive(false);
 
-        // Continuar con la cinemática y después el juego
         if (menuController != null)
         {
             menuController.Jugar();
@@ -129,7 +186,7 @@ public class PanelNombre : MonoBehaviour
 
         if (lista.Count == 0)
         {
-            textoRanking.text = "Aún no hay récords";
+            textoRanking.text = "Aun no hay records";
             return;
         }
 
